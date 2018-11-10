@@ -17,7 +17,8 @@ public:
     test(QWidget *parent = Q_NULLPTR);
 
 private:
-    Ui::tstClass ui;
+    Ui::tstClass ui;  
+    void initActions();
 
 private slots:
 	void addItem();
