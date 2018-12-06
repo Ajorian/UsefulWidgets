@@ -1,3 +1,0 @@
-this widget reads a xml file and load it into a qtreewidget. there are 2 supported properties in xml document which handle tree behavior:
-1- (icon="some path") which loads the icon for that row
-2- (treeState="hidden,disable,selectable,editable,checkable") which set right property (properties) for that row
