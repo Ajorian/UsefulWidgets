@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="WINDOWS-1251" ?>
+<devConfig>
+	<panel name="fake" title="Test Devices" icon="test.png" >
+		<device treeState="checkable,selectable" id="000555" name="RAW   " boardType="IFV3" controls="00" AIcnt="00" AIref="Int" DIportCnt="00" plata="1" IOtype="80" unknown="40" calibSep="00" icon="" title="Raw Device" >
+		</device>
+		<device id="000111" name="Ali" boardType="GIF" controls="06" AIcnt="06" AIref="Ext" DIportCnt="00" plata="1" IOtype="80" unknown="40" calibSep="00" icon="" title="Test Device" >
+			<control treeState="hidden"  type="AI" min="0" max="4095" />
+			<control treeState="hidden"  type="AI" min="0" max="4095" />
+			<control treeState="hidden"  type="AI" min="0" max="4095" />
+			<control treeState="hidden"  type="AI" min="0" max="4095" />
+			<control treeState="hidden"  type="AI" min="0" max="4095" />
+			<control treeState="hidden"  type="AI" min="0" max="4095" />
+		</device>
+		<device id="000222" name="Ajr " boardType="GGG" controls="04" AIcnt="00" AIref="Ext" DIportCnt="00" plata="1" IOtype="80" unknown="40" calibSep="10" icon="" title="Test Device" >
+			<control treeState="hidden"  type="Step" min="0" max="1200" rotary="0" reverse="0" />
+			<control treeState="hidden"  type="Step" min="0" max="1200" rotary="0" reverse="0" />
+			<control treeState="hidden"  type="Step" min="0" max="1200" rotary="0" reverse="0" />
+			<control treeState="hidden"  type="Step" min="0" max="1200" rotary="0" reverse="0" />
+		</device>
+	</panel>
+	<panel name="CP" title="Central Overhead Console">
+		<device id="4587" name="FKU110" boardType="IFV4" controls="59" AIcnt="01" AIref="Int" DIportCnt="05" plata="1" IOtype="80" unknown="40" calibSep="8E" icon="" title="Panel" >
+			<control treeState="hidden"  min="0" max="7" rotary="0" initDir="wiper" reverse="0" />
+		</device>
+		<device id="55555" name="UI110M" boardType="GG1P" controls="01" AIcnt="00" AIref="Int" DIportCnt="00" plata="1" IOtype="80" unknown="40" calibSep="10" icon="" title="Pressure System" >
+			<control treeState="hidden"  min="0" max="1" rotary="0" initDir="wiper" reverse="0" title="neelde1" calib="0.000000*,0.000000/204.600006,5.000000/409.200012,6.000000/613.799988,131.000000/818.400024,379.000000/1023.000000*,1023.000000" />
+		</device>
+	</panel>
+</devConfig>
