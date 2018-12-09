@@ -22,8 +22,13 @@ void test::on_pushButton_clicked()
         return;
     else
     {
-        ui->xtreeWid->clear();
+        ui->tree->clear();
         ui->led_path->setText(strPath);
-        ui->xtreeWid->readXML(strPath);
+        ui->tree->readXML(strPath);
     }
+}
+
+void test::on_led_search_textChanged(const QString &arg1)
+{
+    ui->tree->filter(arg1,QVector<int>()<<0);
 }
