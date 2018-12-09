@@ -4,15 +4,25 @@
 #include <QMainWindow>
 #include "xTreeWidget.h"
 
-struct TestNodeData1 : public NodeData
-{
-    QString name;
-    virtual QString toString()const{return QString("name=\"%1\"").arg(name);}
-};
+#define XML_NODE_TYPE_PANEL "panel"
+#define FIELD_NAME	"name"
+#define FIELD_TITLE "title"
 
-struct TestNodeData2 : public NodeData
+struct Panel : public NodeData
 {
-    virtual QString toString()const{return QString();}
+    QString name, title;
+    Panel(const GXP::AtributesVector& fields)
+    {
+        for (size_t i=0; i<fields.size(); i++)
+            {
+                if (QString(fields[i].first.c_str()).toLower() == FIELD_NAME)
+                    name = fields[i].second.c_str();
+                else if (QString(fields[i].first.c_str()).toLower() == FIELD_TITLE)
+                    title = fields[i].second.c_str();
+            }
+    }
+
+    QString toString()const{return QString("%1=\"%2\" %3=\"%4\"").arg(FIELD_NAME).arg(name).arg(FIELD_TITLE).arg(title);}
 };
 
 namespace Ui {
@@ -29,6 +39,7 @@ public:
 
 private slots:
     void on_pushButton_clicked();
+
     void on_led_search_textChanged(const QString &arg1);
 
 private:
