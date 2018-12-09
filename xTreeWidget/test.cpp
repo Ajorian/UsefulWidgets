@@ -4,9 +4,9 @@
 
 NodeData* CreateNodeData(const QString type, const GXP::AtributesVector& fields)
 {
-    if(type=="test")
-        return new TestNodeData1();
-    return new TestNodeData2();
+    if (type.toLower() == XML_NODE_TYPE_PANEL)
+        return new Panel(fields);
+    return new EmptyNodeData;
 }
 
 test::test(QWidget *parent) :
