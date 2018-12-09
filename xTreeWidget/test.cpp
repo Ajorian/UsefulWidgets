@@ -2,6 +2,13 @@
 #include "ui_test.h"
 #include <QFileDialog>
 
+NodeData* CreateNodeData(const QString type, const GXP::AtributesVector& fields)
+{
+    if(type=="test")
+        return new TestNodeData1();
+    return new TestNodeData2();
+}
+
 test::test(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::test)
