@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QFile>
 #include <QTextStream>
+#include <QMenu>
 
 std::function<void(const GXP::NodeChildren &  children, QTreeWidgetItem* parent)> _parseChildren;
 std::function<bool(QTreeWidgetItem* itm,bool parentMatched)> _filtItm;
@@ -47,10 +48,10 @@ QString NodeInfo::flagsToString()const
 }
 
 xTreeWidget::xTreeWidget(QWidget *parent)
-	: QWidget(parent)
+	: QTreeWidget(parent)
 {
-	ui.setupUi(this);
-	readXML(QApplication::applicationDirPath() + "/devices.xml");
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(this, &QTreeWidget::customContextMenuRequested, this, &xTreeWidget::handleMenu);
 }
 
 xTreeWidget::~xTreeWidget()
@@ -59,10 +60,10 @@ xTreeWidget::~xTreeWidget()
 
 void xTreeWidget::readXML(const QString path)
 {
+    clear();
 	const GXP::parser pars(path.toStdString().c_str());
 	rootType = pars.data->type.c_str();
 	XMLtoTreeWidget(pars);
-	saveToXML(path + ".xml");
 }
 
 void xTreeWidget::saveToXML(const QString path) const
@@ -97,9 +98,9 @@ void xTreeWidget::saveToXML(const QString path) const
 			return ret;
 		};
 
-		for (int i = 0; i < ui.tree->topLevelItemCount(); i++)
+		for (int i = 0; i < topLevelItemCount(); i++)
 		{
-			const QString xmlStr = _toXML(ui.tree->topLevelItem(i),1);
+			const QString xmlStr = _toXML(topLevelItem(i),1);
 			if(!xmlStr.isEmpty())stream << xmlStr;
 		}
  		stream << QString("</%1>").arg(rootType);
@@ -156,7 +157,7 @@ void xTreeWidget::XMLtoTreeWidget(const GXP::parser& pars)
 			info.stateFlags = state;
 			treeItm->setData(0,Qt::UserRole, QVariant::fromValue<NodeInfo>(info));
 
-            if (parent == NULL) ui.tree->addTopLevelItem(treeItm);
+            if (parent == NULL) addTopLevelItem(treeItm);
 			else parent->addChild(treeItm);
 			treeItm->setHidden(state&ItemIsHidden);
             _parseChildren(children[i]->children, treeItm);
@@ -165,10 +166,10 @@ void xTreeWidget::XMLtoTreeWidget(const GXP::parser& pars)
 	};
 
     _parseChildren(pars.data->children,NULL);
-    ui.tree->setColumnCount(header.count());
-    ui.tree->setHeaderLabels(header);
+    setColumnCount(header.count());
+    setHeaderLabels(header);
 	for (int i = 0; i < hiddenColumns.size(); i++)
-        ui.tree->setColumnHidden(i, hiddenColumns[i]);
+        setColumnHidden(i, hiddenColumns[i]);
 }
 
 void xTreeWidget::filter(const QString str,const QVector<int> columns)
@@ -197,11 +198,17 @@ void xTreeWidget::filter(const QString str,const QVector<int> columns)
         return match;
     };
 
-    for(int i=0; i<ui.tree->topLevelItemCount(); i++)
-        _filtItm(ui.tree->topLevelItem(i),false);
+    for(int i=0; i<topLevelItemCount(); i++)
+        _filtItm(topLevelItem(i),false);
 }
 
-void xTreeWidget::on_led_search_textChanged(const QString &arg1)
+void xTreeWidget::handleMenu(const QPoint & pos)
 {
-    filter(arg1,QVector<int>()<<0);
+	if (menuActions.isEmpty())
+		return;
+	
+	QMenu menu(0);
+	for (int i = 0; i < menuActions.size(); i++)
+		menu.addAction(menuActions[i]);
+	menu.exec(mapToGlobal(pos));
 }
