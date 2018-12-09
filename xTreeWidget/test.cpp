@@ -2,13 +2,6 @@
 #include "ui_test.h"
 #include <QFileDialog>
 
-NodeData* CreateNodeData(const QString type, const GXP::AtributesVector& fields)
-{
-    if (type.toLower() == XML_NODE_TYPE_PANEL)
-        return new Panel(fields);
-    return new EmptyNodeData;
-}
-
 test::test(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::test)
