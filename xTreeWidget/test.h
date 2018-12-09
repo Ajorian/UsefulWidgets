@@ -18,6 +18,8 @@ public:
 private slots:
     void on_pushButton_clicked();
 
+    void on_led_search_textChanged(const QString &arg1);
+
 private:
     Ui::test *ui;
 };
