@@ -4,6 +4,7 @@
 #include "xml/gxp.h"
 
 struct NodeData{virtual QString toString()const = 0; /*syntax: field="value"*/};
+struct EmptyNodeData :public NodeData { QString toString()const { return QString(); } };
 NodeData* CreateNodeData(const QString type, const GXP::AtributesVector& fields);
 
 struct NodeInfo
