@@ -23,8 +23,7 @@ HEADERS  += test.h \
     xml/pugi/pugiconfig.hpp \
     xml/pugi/pugixml.hpp
 
-FORMS    += test.ui \
-    xTreeWidget.ui
+FORMS    += test.ui
 
 RESOURCES += \
     xTreeWidget.qrc
