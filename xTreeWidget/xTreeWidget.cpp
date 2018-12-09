@@ -3,9 +3,12 @@
 #include <QVariant>
 #include <QTreeWidgetItem>
 #include <QApplication>
+#include <QFile>
+#include <QTextStream>
 
 std::function<void(const GXP::NodeChildren &  children, QTreeWidgetItem* parent)> _parseChildren;
 std::function<bool(QTreeWidgetItem* itm,bool parentMatched)> _filtItm;
+std::function<QString(QTreeWidgetItem* itm, int level)> _toXML;
 
 #define ATRIB_ICON "icon"
 #define ATRIB_TREE_STATE "treeState"
@@ -14,12 +17,40 @@ std::function<bool(QTreeWidgetItem* itm,bool parentMatched)> _filtItm;
 #define TREE_STATE_SELECTABLE "selectable"
 #define TREE_STATE_EDITABLE "editable"
 #define TREE_STATE_CHECKABLE "checkable"
+#define FLAGS_SEPRATOR	','
 #define GET_DATA(itm_ptr) ((itm_ptr)->data(0,Qt::UserRole).value<NodeInfo>())
+
+quint16 NodeInfo::parseFlags(const QString val)
+{
+	quint16 flags = Qt::ItemIsEnabled;
+	const QStringList sts = val.split(FLAGS_SEPRATOR);
+	for (int t = 0; t < sts.size(); t++)
+	{
+		if (sts[t] == TREE_STATE_HIDE) flags |= ItemIsHidden;
+		else if (sts[t] == TREE_STATE_DISABLE) flags &= ~((quint16)Qt::ItemIsEnabled);
+		else if (sts[t] == TREE_STATE_SELECTABLE) flags |= Qt::ItemIsSelectable;
+		else if (sts[t] == TREE_STATE_EDITABLE) flags |= Qt::ItemIsEditable;
+		else if (sts[t] == TREE_STATE_CHECKABLE) flags |= Qt::ItemIsUserCheckable;
+	}
+	return flags;
+}
+
+QString NodeInfo::flagsToString()const
+{
+	QString ret;
+	if (stateFlags & ItemIsHidden) ret += TREE_STATE_HIDE;
+	else if (stateFlags & Qt::ItemIsSelectable) { if (!ret.isEmpty())ret += QString(FLAGS_SEPRATOR); ret+=TREE_STATE_SELECTABLE;}
+	else if (stateFlags & Qt::ItemIsEditable)   { if (!ret.isEmpty())ret += QString(FLAGS_SEPRATOR); ret += TREE_STATE_EDITABLE;}
+	else if (stateFlags & Qt::ItemIsUserCheckable) { if (!ret.isEmpty())ret += QString(FLAGS_SEPRATOR); ret += TREE_STATE_CHECKABLE; }
+	else if (!(stateFlags & Qt::ItemIsEnabled)) { if (!ret.isEmpty())ret += QString(FLAGS_SEPRATOR); ret += TREE_STATE_DISABLE; }
+	return ret;
+}
 
 xTreeWidget::xTreeWidget(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+	readXML(QApplication::applicationDirPath() + "/devices.xml");
 }
 
 xTreeWidget::~xTreeWidget()
@@ -29,28 +60,56 @@ xTreeWidget::~xTreeWidget()
 void xTreeWidget::readXML(const QString path)
 {
 	const GXP::parser pars(path.toStdString().c_str());
+	rootType = pars.data->type.c_str();
 	XMLtoTreeWidget(pars);
+	saveToXML(path + ".xml");
+}
+
+void xTreeWidget::saveToXML(const QString path) const
+{
+	QFile file(path);
+	if (file.open(QIODevice::ReadWrite))
+	{
+		QTextStream stream(&file);
+		stream << "<?xml version=\"1.0\" encoding=\"WINDOWS-1251\" ?>\n";
+		stream << QString("<%1>").arg(rootType)<<endl;
+
+		_toXML = [&](QTreeWidgetItem* itm, int level)
+		{
+			const NodeInfo nInfo = GET_DATA(itm);
+			const QString xmlStr = nInfo.data->toXML();
+			QString ret;
+
+			if (!xmlStr.isEmpty())
+			{
+				for (int i = 0; i < level; i++) ret +="\t";
+				const QString flgs = nInfo.flagsToString();
+				const QString treeStateStr = flgs.isEmpty()? QString() : QString("%1=\"%2\"").arg(ATRIB_TREE_STATE).arg(flgs);
+				ret += QString ("<%1 %2 ").arg(nInfo.data->type).arg(treeStateStr)+xmlStr+((itm->childCount()>0)?" >":" />")+"\n";
+				for (int i = 0; i < itm->childCount(); i++)
+					ret += _toXML(itm->child(i), level+1);
+				if (itm->childCount() > 0)
+				{
+					for (int i = 0; i < level; i++) ret += "\t";
+					ret += QString("</%1>\n").arg(nInfo.data->type);
+				}
+			}
+			return ret;
+		};
+
+		for (int i = 0; i < ui.tree->topLevelItemCount(); i++)
+		{
+			const QString xmlStr = _toXML(ui.tree->topLevelItem(i),1);
+			if(!xmlStr.isEmpty())stream << xmlStr;
+		}
+ 		stream << QString("</%1>").arg(rootType);
+	}
 }
 
 void xTreeWidget::XMLtoTreeWidget(const GXP::parser& pars)
 {
 	QStringList header;
 	QList<bool> hiddenColumns;
-
-    auto _setFlags= [](const QString val)
-	{
-		quint16 flags = Qt::ItemIsEnabled;
-		const QStringList sts = val.split(',');
-		for (int t = 0; t < sts.size(); t++)
-		{
-			if (sts[t] == TREE_STATE_HIDE) flags |= ItemIsHidden;
-			else if (sts[t] == TREE_STATE_DISABLE) flags &= ~((quint16)Qt::ItemIsEnabled);
-			else if (sts[t] == TREE_STATE_SELECTABLE) flags |= Qt::ItemIsSelectable;
-			else if (sts[t] == TREE_STATE_EDITABLE) flags |= Qt::ItemIsEditable;
-			else if (sts[t] == TREE_STATE_CHECKABLE) flags |= Qt::ItemIsUserCheckable;
-		}
-		return flags;
-	};
 
     auto _createTreeItem = [&](const GXP::AtributesVector &  atribs,quint16 & flags)
  	{
@@ -61,7 +120,7 @@ void xTreeWidget::XMLtoTreeWidget(const GXP::parser& pars)
 		{
 			const QString field = atribs[j].first.c_str();
 			if (field == ATRIB_TREE_STATE)
-                flags = _setFlags(QString(atribs[j].second.c_str()));
+                flags = NodeInfo::parseFlags(QString(atribs[j].second.c_str()));
 			else if (field == ATRIB_ICON)
 			{
 				if(!atribs[j].second.empty())
