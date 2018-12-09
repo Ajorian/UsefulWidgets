@@ -1,17 +1,13 @@
 #pragma once
 
-#include <QWidget>
-#include "ui_xTreeWidget.h"
+#include <QTreeWidget>
 #include "xml/gxp.h"
 
 struct NodeData
 {
     QString type;
     NodeData(const QString _type, const GXP::AtributesVector& fields):type(_type){}
-	QString toXML()const // you don't have to push '<' 'type' and '>' in the beginning and the end of the return string;
-	{
-        return QString();
-	}
+    QString toXML()const{return QString();} // you don't have to push '<' 'type' and '>' in the beginning and the end of the return string;
 };
 
 struct NodeInfo
@@ -28,23 +24,23 @@ struct NodeInfo
 };
 Q_DECLARE_METATYPE(NodeInfo);
 
-class xTreeWidget : public QWidget
+class xTreeWidget : public QTreeWidget
 {
 	Q_OBJECT
 
 public:
 	xTreeWidget(QWidget *parent = Q_NULLPTR);
 	~xTreeWidget();
-	void clear() { ui.tree->clear(); }
     void readXML(const QString path);
 	void saveToXML(const QString path)const;
+	void setMenuActions(QVector<QAction*> actions) { menuActions = actions; }
+	void filter(const QString str, const QVector<int> columns);
 
 private slots:
-    void on_led_search_textChanged(const QString &arg1);
+	void handleMenu(const QPoint &);
 
 private:
-    Ui::xTreeWidget ui;
 	QString rootType;
+	QVector<QAction*> menuActions;
 	void XMLtoTreeWidget(const GXP::parser& prs);
-    void filter(const QString str,const QVector<int> columns);
 };
